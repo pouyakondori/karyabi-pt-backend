@@ -183,7 +183,7 @@ export async function handleGoogleCallback(request: Request, response: Response)
 
   persistConsentCookie(response);
 
-  const redirectUrl = new URL("/auth/callback", env.frontendUrl);
+  const redirectUrl = new URL("/dashboard", env.frontendUrl);
   redirectUrl.searchParams.set("token", jwtToken);
   redirectUrl.searchParams.set("userId", user.id);
   redirectUrl.searchParams.set("role", user.role);
