@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  job_seeker
+  employer
+}
+
+enum JobType {
+  full_time
+  part_time
+}
+
+enum JobStatus {
+  pending
+  approved
+  rejected
+}
+
+enum PortugalRegion {
+  aveiro
+  beja
+  braga
+  braganca
+  castelo_branco
+  coimbra
+  evora
+  faro
+  guarda
+  leiria
+  lisboa
+  portalegre
+  porto
+  santarem
+  setubal
+  viana_do_castelo
+  vila_real
+  viseu
+  azores
+  madeira
+}
+
+model User {
+  id               String             @id @default(uuid())
+  email            String             @unique
+  role             Role
+  googleId         String?            @unique @map("google_id")
+  gdprConsentedAt  DateTime?          @map("gdpr_consented_at")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  seekerProfile    JobSeekerProfile?
+  employerJobs     Job[]              @relation("EmployerJobs")
+  applications     Application[]      @relation("SeekerApplications")
+
+  @@map("users")
+}
+
+model JobSeekerProfile {
+  userId                         String         @id @map("user_id")
+  fullName                       String         @map("full_name")
+  hasResidencePermit             Boolean        @map("has_residence_permit")
+  residencyExpirationDate        DateTime?      @map("residency_expiration_date") @db.Date
+  hasWorkPermit                  Boolean        @map("has_work_permit")
+  residencyPermitType            String         @map("residency_permit_type")
+  canRideBike                    Boolean        @map("can_ride_bike")
+  universityFieldAndDegree       String         @map("university_field_and_degree")
+  hasPortugueseDrivingLicense    Boolean        @map("has_portuguese_driving_license")
+  hasUberExperience              Boolean        @map("has_uber_experience")
+  generalExpertise               String[]       @map("general_expertise")
+  portugalRegion                 PortugalRegion @map("portugal_region")
+  phoneNumber                    String         @map("phone_number")
+  address                        String
+  resumeUrl                      String?        @map("resume_url")
+  linkedinUrl                    String?        @map("linkedin_url")
+  createdAt                      DateTime       @default(now()) @map("created_at")
+  updatedAt                      DateTime       @updatedAt @map("updated_at")
+  user                           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("job_seeker_profiles")
+}
+
+model Job {
+  id           String         @id @default(uuid())
+  employerId   String         @map("employer_id")
+  title        String
+  description  String
+  type         JobType
+  status       JobStatus      @default(pending)
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  employer     User           @relation("EmployerJobs", fields: [employerId], references: [id], onDelete: Cascade)
+  applications Application[]
+
+  @@map("jobs")
+}
+
+model Application {
+  id         String   @id @default(uuid())
+  jobId      String   @map("job_id")
+  seekerId   String   @map("seeker_id")
+  appliedAt  DateTime @default(now()) @map("applied_at")
+  job        Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  seeker     User     @relation("SeekerApplications", fields: [seekerId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, seekerId])
+  @@map("applications")
+}
