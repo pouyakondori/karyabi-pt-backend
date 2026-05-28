@@ -88,9 +88,10 @@ export async function getJobCandidates(request: Request, response: Response) {
       id: jobId,
       employerId
     },
-    select: {
-      id: true,
-      title: true,
+    include: {
+      _count: {
+        select: { applications: true }
+      },
       applications: {
         orderBy: { appliedAt: "desc" },
         select: {
@@ -115,6 +116,47 @@ export async function getJobCandidates(request: Request, response: Response) {
   return response.json({
     success: true,
     message: request.t("messages.applicationsFetched"),
-    data: job
+    data: {
+      job: serializeJob({
+        ...job,
+        applications: undefined
+      }),
+      applications: job.applications
+    }
+  });
+}
+
+export async function deleteEmployerJob(request: Request, response: Response) {
+  const employerId = request.auth?.userId;
+  const jobId = getSingleValue(request.params.id);
+
+  if (!employerId) {
+    throw new AppError(request.t("errors.unauthorized"), 401);
+  }
+
+  const job = await prisma.job.findFirst({
+    where: {
+      id: jobId,
+      employerId
+    },
+    select: {
+      id: true
+    }
+  });
+
+  if (!job) {
+    throw new AppError(request.t("errors.notFound"), 404);
+  }
+
+  await prisma.job.delete({
+    where: {
+      id: job.id
+    }
+  });
+
+  return response.json({
+    success: true,
+    message: request.t("messages.jobDeleted"),
+    data: null
   });
 }

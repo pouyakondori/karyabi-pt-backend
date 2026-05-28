@@ -35,7 +35,7 @@ const corsOptions: cors.CorsOptions = {
     callback(new Error(`cors_origin_denied:${origin}`));
   },
   credentials: true,
-  methods: ["GET", "POST", "PATCH", "OPTIONS"],
+  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "x-gdpr-consent"]
 };
 
