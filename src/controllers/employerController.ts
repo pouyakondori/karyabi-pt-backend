@@ -48,6 +48,14 @@ export async function createEmployerJob(request: Request, response: Response) {
         employerId,
         title: payload.title,
         description: payload.description,
+        companyName: payload.companyName,
+        location: payload.location,
+        salaryMin: payload.salaryMin,
+        salaryMax: payload.salaryMax,
+        workplaceType: payload.workplaceType,
+        experienceLevel: payload.experienceLevel,
+        vacancies: payload.vacancies,
+        applicationDeadline: payload.applicationDeadline ? new Date(payload.applicationDeadline) : null,
         type: apiJobTypeToDb[payload.type],
         status: JobStatus.pending
       }

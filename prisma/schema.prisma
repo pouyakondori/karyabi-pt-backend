@@ -87,16 +87,24 @@ model JobSeekerProfile {
 }
 
 model Job {
-  id           String         @id @default(uuid())
-  employerId   String         @map("employer_id")
-  title        String
-  description  String
-  type         JobType
-  status       JobStatus      @default(pending)
-  createdAt    DateTime       @default(now()) @map("created_at")
-  updatedAt    DateTime       @updatedAt @map("updated_at")
-  employer     User           @relation("EmployerJobs", fields: [employerId], references: [id], onDelete: Cascade)
-  applications Application[]
+  id                  String         @id @default(uuid())
+  employerId          String         @map("employer_id")
+  title               String
+  description         String
+  companyName         String?        @map("company_name")
+  location            String?
+  salaryMin           Int?           @map("salary_min")
+  salaryMax           Int?           @map("salary_max")
+  workplaceType       String?        @map("workplace_type")
+  experienceLevel     String?        @map("experience_level")
+  vacancies           Int?
+  applicationDeadline DateTime?      @map("application_deadline") @db.Date
+  type                JobType
+  status              JobStatus      @default(pending)
+  createdAt           DateTime       @default(now()) @map("created_at")
+  updatedAt           DateTime       @updatedAt @map("updated_at")
+  employer            User           @relation("EmployerJobs", fields: [employerId], references: [id], onDelete: Cascade)
+  applications        Application[]
 
   @@map("jobs")
 }
