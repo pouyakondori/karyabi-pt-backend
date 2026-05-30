@@ -10,6 +10,7 @@
     "jobClosed": "ظرفیت این فرصت شغلی تکمیل شده است.",
     "jobSuspended": "این فرصت شغلی موقتاً غیرفعال شده است.",
     "accountSuspended": "حساب کاربری شما توسط مدیر سامانه موقتاً غیرفعال شده است.",
+    "adminNotAuthorized": "You are not authorized to log in as an admin.",
     "duplicateApplication": "شما قبلاً برای این فرصت شغلی درخواست ثبت کرده‌اید.",
     "applicationAlreadyReviewed": "وضعیت این متقاضی قبلاً تعیین شده است.",
     "googleAuthNotConfigured": "ورود با گوگل در محیط محلی پیکربندی نشده است.",
@@ -30,6 +31,7 @@
   "messages": {
     "jobsFetched": "فهرست فرصت‌های شغلی با موفقیت دریافت شد.",
     "adminOverviewFetched": "اطلاعات مدیریتی با موفقیت دریافت شد.",
+    "adminCreated": "مدیر جدید با موفقیت به سامانه اضافه شد.",
     "profileFetched": "پروفایل کارجو با موفقیت دریافت شد.",
     "profileSaved": "پروفایل کارجو با موفقیت ذخیره شد.",
     "recommendedJobsFetched": "فرصت‌های شغلی پیشنهادی با موفقیت دریافت شد.",

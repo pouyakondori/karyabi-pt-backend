@@ -7,7 +7,7 @@ import { AppError } from "../lib/app-error";
 import { getSingleValue } from "../lib/http";
 import { serializeJob } from "../lib/job";
 import { formatZodError } from "../lib/validation";
-import { suspendEntitySchema } from "../validations/admin";
+import { createAdminSchema, suspendEntitySchema } from "../validations/admin";
 import { updateJobStatusSchema } from "../validations/job";
 
 export async function listPendingJobs(request: Request, response: Response) {
@@ -37,7 +37,17 @@ export async function listPendingJobs(request: Request, response: Response) {
 }
 
 export async function getAdminOverview(request: Request, response: Response) {
-  const [employers, jobSeekers, jobs] = await Promise.all([
+  const [admins, employers, jobSeekers, jobs] = await Promise.all([
+    prisma.user.findMany({
+      where: { role: Role.admin },
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        email: true,
+        isSuspended: true,
+        createdAt: true
+      }
+    }),
     prisma.user.findMany({
       where: { role: Role.employer },
       orderBy: { createdAt: "desc" },
@@ -74,11 +84,50 @@ export async function getAdminOverview(request: Request, response: Response) {
     success: true,
     message: request.t("messages.adminOverviewFetched"),
     data: {
+      admins,
       employers,
       jobSeekers,
       jobs: jobs.map(serializeJob)
     }
   });
+}
+
+export async function createAdminUser(request: Request, response: Response) {
+  try {
+    const payload = createAdminSchema.parse(request.body);
+    const normalizedEmail = payload.email.toLowerCase();
+
+    const user = await prisma.user.upsert({
+      where: { email: normalizedEmail },
+      update: {
+        role: Role.admin,
+        isSuspended: false
+      },
+      create: {
+        email: normalizedEmail,
+        role: Role.admin,
+        isSuspended: false
+      }
+    });
+
+    return response.status(201).json({
+      success: true,
+      message: request.t("messages.adminCreated"),
+      data: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        isSuspended: user.isSuspended,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new AppError(request.t("errors.validation.required"), 422, formatZodError(error, request.t));
+    }
+
+    throw error;
+  }
 }
 
 export async function updateJobStatus(request: Request, response: Response) {

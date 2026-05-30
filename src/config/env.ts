@@ -16,6 +16,7 @@ export const env = {
   frontendUrl: process.env.FRONTEND_URL ?? "http://localhost:5173",
   backendPublicUrl: process.env.BACKEND_PUBLIC_URL ?? "",
   allowedOrigins: configuredOrigins,
+  bootstrapAdminEmail: (process.env.BOOTSTRAP_ADMIN_EMAIL ?? "pouya.kondori@gmail.com").toLowerCase(),
   jwtSecret: process.env.JWT_SECRET ?? "change-me",
   resumeEncryptionSecret: process.env.RESUME_ENCRYPTION_SECRET ?? process.env.JWT_SECRET ?? "change-me-local-only",
   googleClientId: process.env.GOOGLE_CLIENT_ID ?? "",

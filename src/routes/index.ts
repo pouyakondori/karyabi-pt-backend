@@ -4,6 +4,7 @@ import { Router } from "express";
 
 import { devLogin, getGoogleAuthUrl, handleGoogleCallback } from "../controllers/authController";
 import {
+  createAdminUser,
   deleteAdminJob,
   deleteAdminUser,
   getAdminOverview,
@@ -130,6 +131,12 @@ router.get(
   authGuard,
   roleGuard([Role.admin]),
   asyncHandler(getAdminOverview)
+);
+router.post(
+  "/admin/admins",
+  authGuard,
+  roleGuard([Role.admin]),
+  asyncHandler(createAdminUser)
 );
 router.get(
   "/admin/jobs/pending",

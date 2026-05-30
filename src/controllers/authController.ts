@@ -7,11 +7,11 @@ import { prisma } from "../config/prisma";
 import { AppError } from "../lib/app-error";
 import { getSingleValue } from "../lib/http";
 
-const allowedOAuthRoles = [Role.job_seeker, Role.employer] as const;
+const allowedOAuthRoles = [Role.job_seeker, Role.employer, Role.admin] as const;
 type OAuthRole = (typeof allowedOAuthRoles)[number];
 
 function resolveOAuthRole(rawRole: string | undefined): OAuthRole {
-  return rawRole === Role.job_seeker || rawRole === Role.employer ? rawRole : Role.job_seeker;
+  return rawRole === Role.job_seeker || rawRole === Role.employer || rawRole === Role.admin ? rawRole : Role.job_seeker;
 }
 
 function buildGoogleUrl(role: Role) {
@@ -49,6 +49,34 @@ function persistConsentCookie(response: Response) {
     sameSite: "lax",
     path: "/"
   });
+}
+
+function buildFrontendLoginErrorRedirect(message: string) {
+  const redirectUrl = new URL("/login", env.frontendUrl);
+  redirectUrl.searchParams.set("error", message);
+  return redirectUrl.toString();
+}
+
+async function ensureAdminAccess(email: string) {
+  const normalizedEmail = email.toLowerCase();
+  const existingAdmin = await prisma.user.findUnique({
+    where: { email: normalizedEmail },
+    select: {
+      id: true,
+      role: true,
+      isSuspended: true
+    }
+  });
+
+  if (existingAdmin?.isSuspended) {
+    throw new AppError("account_suspended", 403);
+  }
+
+  if (existingAdmin?.role === Role.admin) {
+    return true;
+  }
+
+  return normalizedEmail === env.bootstrapAdminEmail;
 }
 
 export async function getGoogleAuthUrl(request: Request, response: Response) {
@@ -166,24 +194,36 @@ export async function handleGoogleCallback(request: Request, response: Response)
     email: string;
   };
 
+  const normalizedEmail = googleUser.email.toLowerCase();
   const existingUser = await prisma.user.findUnique({
-    where: { email: googleUser.email }
+    where: { email: normalizedEmail }
   });
 
   if (existingUser?.isSuspended) {
-    throw new AppError(request.t("errors.accountSuspended"), 403);
+    return response.redirect(buildFrontendLoginErrorRedirect(request.t("errors.accountSuspended")));
   }
 
+  if (requestedRole === Role.admin) {
+    const isAuthorizedAdmin = await ensureAdminAccess(normalizedEmail);
+
+    if (!isAuthorizedAdmin) {
+      return response.redirect(buildFrontendLoginErrorRedirect(request.t("errors.adminNotAuthorized")));
+    }
+  }
+
+  const finalRole = requestedRole === Role.admin ? Role.admin : existingUser?.role ?? requestedRole;
+
   const user = await prisma.user.upsert({
-    where: { email: googleUser.email },
+    where: { email: normalizedEmail },
     update: {
       googleId: googleUser.id,
-      gdprConsentedAt: new Date()
+      gdprConsentedAt: new Date(),
+      role: finalRole
     },
     create: {
-      email: googleUser.email,
+      email: normalizedEmail,
       googleId: googleUser.id,
-      role: requestedRole,
+      role: finalRole,
       gdprConsentedAt: new Date()
     }
   });
