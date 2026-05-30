@@ -44,9 +44,12 @@ function signUserToken(user: { id: string; role: Role; email: string }) {
 }
 
 function persistConsentCookie(response: Response) {
+  const isSecureContext = env.frontendUrl.startsWith("https://") || env.googleRedirectUri.startsWith("https://");
+
   response.cookie(env.gdprCookieName, "true", {
     httpOnly: false,
-    sameSite: "lax",
+    sameSite: isSecureContext ? "none" : "lax",
+    secure: isSecureContext,
     path: "/"
   });
 }

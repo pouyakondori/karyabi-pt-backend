@@ -4,6 +4,14 @@ import { env } from "../config/env";
 import { AppError } from "../lib/app-error";
 
 export function gdprGuard(request: Request, _response: Response, next: NextFunction) {
+  const originalPath = request.originalUrl.split("?")[0];
+
+  if (originalPath === "/api/auth/google/callback" || originalPath === "/auth/google/callback") {
+    request.gdprVerified = true;
+    next();
+    return;
+  }
+
   const headerConsent = request.header("x-gdpr-consent");
   const cookieConsent = request.cookies?.[env.gdprCookieName];
   const consented = [headerConsent, cookieConsent].some((value) => value === "true" || value === "1");
