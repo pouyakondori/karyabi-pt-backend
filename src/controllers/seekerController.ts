@@ -5,6 +5,7 @@ import { ZodError } from "zod";
 import { prisma } from "../config/prisma";
 import { AppError } from "../lib/app-error";
 import { serializeJob } from "../lib/job";
+import { deleteEncryptedResumeFile, extractManagedResumeFileId } from "../lib/resume-storage";
 import { formatZodError } from "../lib/validation";
 import { seekerProfileSchema } from "../validations/profile";
 
@@ -35,6 +36,17 @@ export async function upsertSeekerProfile(request: Request, response: Response) 
 
   try {
     const payload = seekerProfileSchema.parse(request.body);
+    const existingProfile = await prisma.jobSeekerProfile.findUnique({
+      where: { userId },
+      select: { resumeUrl: true }
+    });
+
+    const previousResumeFileId = extractManagedResumeFileId(existingProfile?.resumeUrl);
+    const nextResumeFileId = extractManagedResumeFileId(payload.resumeUrl);
+
+    if (previousResumeFileId && previousResumeFileId !== nextResumeFileId) {
+      await deleteEncryptedResumeFile(previousResumeFileId).catch(() => undefined);
+    }
 
     const profile = await prisma.jobSeekerProfile.upsert({
       where: { userId },
