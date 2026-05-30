@@ -14,6 +14,7 @@ export async function getPublicJobs(request: Request, response: Response) {
   const jobs = await prisma.job.findMany({
     where: {
       status: JobStatus.approved,
+      OR: [{ vacancies: null }, { vacancies: { gt: 0 } }],
       ...(normalizedType ? { type: normalizedType } : {})
     },
     orderBy: {
@@ -23,7 +24,16 @@ export async function getPublicJobs(request: Request, response: Response) {
       id: true,
       title: true,
       description: true,
+      companyName: true,
+      location: true,
+      salaryMin: true,
+      salaryMax: true,
+      workplaceType: true,
+      experienceLevel: true,
+      vacancies: true,
+      applicationDeadline: true,
       type: true,
+      status: true,
       createdAt: true
     }
   });
@@ -46,7 +56,7 @@ export async function applyToJob(request: Request, response: Response) {
 
   const job = await prisma.job.findUnique({
     where: { id: jobId },
-    select: { id: true, status: true }
+    select: { id: true, status: true, vacancies: true }
   });
 
   if (!job) {
@@ -55,6 +65,10 @@ export async function applyToJob(request: Request, response: Response) {
 
   if (job.status !== JobStatus.approved) {
     throw new AppError(request.t("errors.jobNotApproved"), 400);
+  }
+
+  if ((job.vacancies ?? 1) <= 0) {
+    throw new AppError(request.t("errors.jobClosed"), 409);
   }
 
   const existingApplication = await prisma.application.findUnique({

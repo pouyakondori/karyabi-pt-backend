@@ -3,7 +3,14 @@ import { Router } from "express";
 
 import { devLogin, getGoogleAuthUrl, handleGoogleCallback } from "../controllers/authController";
 import { listPendingJobs, updateJobStatus } from "../controllers/adminController";
-import { createEmployerJob, deleteEmployerJob, getJobCandidates, listEmployerJobs } from "../controllers/employerController";
+import {
+  createEmployerJob,
+  deleteEmployerJob,
+  getEmployerCandidate,
+  getJobCandidates,
+  listEmployerJobs,
+  reviewEmployerCandidate
+} from "../controllers/employerController";
 import { applyToJob, getPublicJobs } from "../controllers/jobsController";
 import { getRecommendedJobs, getSeekerProfile, upsertSeekerProfile } from "../controllers/seekerController";
 import { asyncHandler } from "../middlewares/asyncHandler";
@@ -59,6 +66,18 @@ router.get(
   authGuard,
   roleGuard([Role.employer]),
   asyncHandler(getJobCandidates)
+);
+router.get(
+  "/employer/jobs/:id/candidates/:candidateId",
+  authGuard,
+  roleGuard([Role.employer]),
+  asyncHandler(getEmployerCandidate)
+);
+router.patch(
+  "/employer/jobs/:id/candidates/:candidateId/review",
+  authGuard,
+  roleGuard([Role.employer]),
+  asyncHandler(reviewEmployerCandidate)
 );
 router.delete(
   "/employer/jobs/:id",

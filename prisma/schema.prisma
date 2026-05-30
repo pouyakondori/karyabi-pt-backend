@@ -22,6 +22,13 @@ enum JobStatus {
   pending
   approved
   rejected
+  closed
+}
+
+enum ApplicationStatus {
+  pending
+  accepted
+  rejected
 }
 
 enum PortugalRegion {
@@ -110,12 +117,15 @@ model Job {
 }
 
 model Application {
-  id         String   @id @default(uuid())
-  jobId      String   @map("job_id")
-  seekerId   String   @map("seeker_id")
-  appliedAt  DateTime @default(now()) @map("applied_at")
-  job        Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  seeker     User     @relation("SeekerApplications", fields: [seekerId], references: [id], onDelete: Cascade)
+  id              String            @id @default(uuid())
+  jobId           String            @map("job_id")
+  seekerId        String            @map("seeker_id")
+  status          ApplicationStatus @default(pending)
+  rejectionReason String?           @map("rejection_reason")
+  reviewedAt      DateTime?         @map("reviewed_at")
+  appliedAt       DateTime          @default(now()) @map("applied_at")
+  job             Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  seeker          User              @relation("SeekerApplications", fields: [seekerId], references: [id], onDelete: Cascade)
 
   @@unique([jobId, seekerId])
   @@map("applications")
