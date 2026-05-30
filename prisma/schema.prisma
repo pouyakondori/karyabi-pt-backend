@@ -60,6 +60,7 @@ model User {
   role             Role
   googleId         String?            @unique @map("google_id")
   gdprConsentedAt  DateTime?          @map("gdpr_consented_at")
+  isSuspended      Boolean            @default(false) @map("is_suspended")
   createdAt        DateTime           @default(now()) @map("created_at")
   updatedAt        DateTime           @updatedAt @map("updated_at")
   seekerProfile    JobSeekerProfile?
@@ -108,6 +109,7 @@ model Job {
   applicationDeadline DateTime?      @map("application_deadline") @db.Date
   type                JobType
   status              JobStatus      @default(pending)
+  isSuspended         Boolean        @default(false) @map("is_suspended")
   createdAt           DateTime       @default(now()) @map("created_at")
   updatedAt           DateTime       @updatedAt @map("updated_at")
   employer            User           @relation("EmployerJobs", fields: [employerId], references: [id], onDelete: Cascade)

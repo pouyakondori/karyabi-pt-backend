@@ -100,6 +100,8 @@ export async function getRecommendedJobs(request: Request, response: Response) {
   const jobs = await prisma.job.findMany({
     where: {
       status: JobStatus.approved,
+      isSuspended: false,
+      employer: { isSuspended: false },
       OR: [{ vacancies: null }, { vacancies: { gt: 0 } }],
       ...(expertise.length > 0
         ? {

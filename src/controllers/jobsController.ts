@@ -14,6 +14,8 @@ export async function getPublicJobs(request: Request, response: Response) {
   const jobs = await prisma.job.findMany({
     where: {
       status: JobStatus.approved,
+      isSuspended: false,
+      employer: { isSuspended: false },
       OR: [{ vacancies: null }, { vacancies: { gt: 0 } }],
       ...(normalizedType ? { type: normalizedType } : {})
     },
@@ -56,7 +58,7 @@ export async function applyToJob(request: Request, response: Response) {
 
   const job = await prisma.job.findUnique({
     where: { id: jobId },
-    select: { id: true, status: true, vacancies: true }
+    select: { id: true, status: true, vacancies: true, isSuspended: true, employer: { select: { isSuspended: true } } }
   });
 
   if (!job) {
@@ -65,6 +67,10 @@ export async function applyToJob(request: Request, response: Response) {
 
   if (job.status !== JobStatus.approved) {
     throw new AppError(request.t("errors.jobNotApproved"), 400);
+  }
+
+  if (job.isSuspended || job.employer.isSuspended) {
+    throw new AppError(request.t("errors.jobSuspended"), 403);
   }
 
   if ((job.vacancies ?? 1) <= 0) {

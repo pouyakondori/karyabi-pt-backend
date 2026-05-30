@@ -3,7 +3,15 @@ import multer from "multer";
 import { Router } from "express";
 
 import { devLogin, getGoogleAuthUrl, handleGoogleCallback } from "../controllers/authController";
-import { listPendingJobs, updateJobStatus } from "../controllers/adminController";
+import {
+  deleteAdminJob,
+  deleteAdminUser,
+  getAdminOverview,
+  listPendingJobs,
+  suspendAdminJob,
+  suspendAdminUser,
+  updateJobStatus
+} from "../controllers/adminController";
 import {
   createEmployerJob,
   deleteEmployerJob,
@@ -118,6 +126,12 @@ router.delete(
 );
 
 router.get(
+  "/admin/overview",
+  authGuard,
+  roleGuard([Role.admin]),
+  asyncHandler(getAdminOverview)
+);
+router.get(
   "/admin/jobs/pending",
   authGuard,
   roleGuard([Role.admin]),
@@ -128,4 +142,28 @@ router.patch(
   authGuard,
   roleGuard([Role.admin]),
   asyncHandler(updateJobStatus)
+);
+router.patch(
+  "/admin/users/:id/suspend",
+  authGuard,
+  roleGuard([Role.admin]),
+  asyncHandler(suspendAdminUser)
+);
+router.delete(
+  "/admin/users/:id",
+  authGuard,
+  roleGuard([Role.admin]),
+  asyncHandler(deleteAdminUser)
+);
+router.patch(
+  "/admin/jobs/:id/suspend",
+  authGuard,
+  roleGuard([Role.admin]),
+  asyncHandler(suspendAdminJob)
+);
+router.delete(
+  "/admin/jobs/:id",
+  authGuard,
+  roleGuard([Role.admin]),
+  asyncHandler(deleteAdminJob)
 );

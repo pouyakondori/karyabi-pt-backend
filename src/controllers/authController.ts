@@ -82,7 +82,8 @@ export async function devLogin(request: Request, response: Response) {
 
   const user = await prisma.user.findFirst({
     where: {
-      role: rawRole
+      role: rawRole,
+      isSuspended: false
     },
     orderBy: {
       createdAt: "asc"
@@ -164,6 +165,14 @@ export async function handleGoogleCallback(request: Request, response: Response)
     id: string;
     email: string;
   };
+
+  const existingUser = await prisma.user.findUnique({
+    where: { email: googleUser.email }
+  });
+
+  if (existingUser?.isSuspended) {
+    throw new AppError(request.t("errors.accountSuspended"), 403);
+  }
 
   const user = await prisma.user.upsert({
     where: { email: googleUser.email },
