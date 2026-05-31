@@ -1,5 +1,9 @@
 # karyabi-pt-backend
 
+## Contributions
+
+If you want to contribute to this open source project to support Iranians living in Portugal, pick any task from the Backlog column on the backend Kanban board: https://github.com/users/pouyakondori/projects/4. Create a new branch using the conventional commits naming style `feature/<github-issue-id>_short-description`, then open a merge request to suggest your changes.
+
 ## Setup
 
 1. Copy `.env.example` to `.env`
